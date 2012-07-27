@@ -55,18 +55,21 @@ class ExpungeCache(object):
         for root, dirs, files in os.walk(path):
             for f in files:
                 fullpath = os.path.join(root, f)
-                header = open(fullpath).readline().strip()
-                if not header.startswith("status:"):
-                    logging.debug(
-                        "Skipping files with unknown header: '%s'" % f)
-                    continue
-                if self.keep_only_http200 and header != "status: 200":
-                    self._rm(fullpath)
-                if self.keep_time:
-                    mtime = os.path.getmtime(fullpath)
-                    logging.debug("mtime of '%s': '%s" % (f, mtime))
-                    if (mtime + self.keep_time) < now:
+                try:
+                    header = open(fullpath).readline().strip()
+                    if not header.startswith("status:"):
+                        logging.debug(
+                            "Skipping files with unknown header: '%s'" % f)
+                        continue
+                    if self.keep_only_http200 and header != "status: 200":
                         self._rm(fullpath)
+                    if self.keep_time:
+                        mtime = os.path.getmtime(fullpath)
+                        logging.debug("mtime of '%s': '%s" % (f, mtime))
+                        if (mtime + self.keep_time) < now:
+                            self._rm(fullpath)
+                except IOError as e:
+                    logging.debug("ioerror in cleandir: %s" % e)
 
     def clean(self):
         # go over the directories

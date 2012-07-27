@@ -550,7 +550,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         self._logger.info("add_repo_add_key_and_install_app() '%s' '%s' '%s'" %
             (re.sub("deb https://.*@", "", deb_line),  # strip out password
             signing_key_id,
-            app))
+            app.pkgname))
 
         if purchase:
             # pre-authenticate

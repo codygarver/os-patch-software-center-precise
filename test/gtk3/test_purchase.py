@@ -5,6 +5,8 @@ import unittest
 
 from mock import Mock, patch
 
+from gi.repository import Soup, WebKit
+
 from testutils import setup_test_env
 setup_test_env()
 
@@ -14,6 +16,14 @@ from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
 import softwarecenter.paths
 
 class TestPurchase(unittest.TestCase):
+
+    def test_have_cookie_jar(self):
+        # ensure we have a cookie jar available
+        session = WebKit.get_default_session()
+        cookie_jars = [feature 
+                for feature in  session.get_features(Soup.SessionFeature)
+                if isinstance(feature, Soup.CookieJar)]
+        self.assertEqual(len(cookie_jars), 1)
 
     def test_purchase_view_log_cleaner(self):
         import softwarecenter.ui.gtk3.views.purchaseview

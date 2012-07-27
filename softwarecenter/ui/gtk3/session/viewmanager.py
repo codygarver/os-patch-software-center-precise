@@ -177,6 +177,11 @@ class ViewManager(GObject.GObject):
             if ni.pane.is_applist_view_showing():
                 v = ni.pane.app_view.tree_view_scroll.get_vadjustment()
                 ni.view_state.vadjustment = v.get_value()
+            # if there is a video playing, stop it
+            try:
+                ni.pane.app_details_view.videoplayer.stop()
+            except AttributeError:
+                pass
 
         if callback is None:
             callback = pane.get_callback_for_page(page, view_state)

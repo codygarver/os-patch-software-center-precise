@@ -1,3 +1,45 @@
+software-center (5.2.4elementary193~precise1) precise; urgency=low
+
+  * Auto build.
+
+ -- Launchpad Package Builder <noreply@launchpad.net>  Mon, 09 Jul 2012 21:28:52 +0000
+
+software-center (5.2.4) precise-proposed; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/lp970627:
+    - fix intermittent crash when expunging the cache (LP: #970627)
+  * lp:~mvo/software-center/lp971776:
+    - fix crash when a downloaded image is invalid for whatever
+      reason (network issues, proxy issues, pay-wall in between)
+      (LP: #971776)
+  * lp:~mvo/software-center/lp967036-2:
+    - fix unicode error crash for people running with the
+      LANGUAGE=zh_CN.UTF-8 or zh_TW.UTF-8 (LP: #967036)
+  * lp:~mvo/software-center/cookie-jar:
+    - fix paypal support in the purchases window (LP: #1018347)
+
+  [ Gary Lasker ]
+  * debian/control:
+    - update vcs link to point to the 5.2 branch 
+  * lp:~gary-lasker/software-center/previous-purchase-sorting-lp873104:
+    - return correct results when sorting the list of previous
+      purchases (LP: #873104)
+  * lp:~gary-lasker/software-center/recommendations-string-change-lp986437-for-5.2:
+    - switch to the updated recommendations opt-in string now that the 
+      corresponding language pack updates are released and available
+      (LP: #986437)
+  * lp:~gary-lasker/software-center/fix-lp920741:
+    - fix UnicodeDecodeError when a commercial app's title contains
+      a unicode character (LP: #920741)
+  
+  [ Natalia Bidart ]
+  * lp:~nataliabidart/software-center/cant-stop-the-music:
+    - Stop the video if user navigates away from an app details page
+      (LP: #1003954).
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 28 Jun 2012 10:35:55 +0200
+
 software-center (5.2.3) precise-proposed; urgency=low
 
   [ Robert Roth ]
@@ -3460,7 +3502,7 @@ software-center (3.1.23.3) natty; urgency=low
     - fix crash with the new zeitgeist version
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Mar 2011 13:59:15 +0100
-  
+
 software-center (3.1.23.2) natty; urgency=low
 
   [ Michael Vogt]
@@ -3508,7 +3550,7 @@ software-center (3.1.23.2) natty; urgency=low
     - add unit test for Unity launcher integration feature 
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Mar 2011 18:53:22 +0100
- 
+
 software-center (3.1.23.1) natty; urgency=low
 
   * softwarecenter/db/reviews.py:

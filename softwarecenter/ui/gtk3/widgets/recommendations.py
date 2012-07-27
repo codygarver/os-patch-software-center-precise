@@ -146,18 +146,9 @@ class RecommendationsPanelLobby(RecommendationsPanelCategory):
     TURN_ON_RECOMMENDATIONS_TEXT = _(u"Turn On Recommendations")
     # FIXME: This will be the default text once LP: #986437 is approved and
     #        ready to be merged/SRU'd
-    FUTURE_RECOMMENDATIONS_OPT_IN_TEXT = _(u"To make recommendations, "
-                 "Ubuntu Software Center "
-                 "will occasionally send to Canonical a list "
-                 "of software currently installed.")
-    # FIXME: The following unused string can be removed and the one above used
-    #        after the transition to the new string has had enough time to
-    #        take effect
-    # TRANSLATORS: please ignore the following string as it it just there for
-    #              a transition to the updated string above
     RECOMMENDATIONS_OPT_IN_TEXT = _(u"To make recommendations, "
                  "Ubuntu Software Center "
-                 "will occasionally send to Canonical an anonymous list "
+                 "will occasionally send to Canonical a list "
                  "of software currently installed.")
 
     def __init__(self, catview):

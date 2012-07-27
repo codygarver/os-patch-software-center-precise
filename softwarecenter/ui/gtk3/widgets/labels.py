@@ -70,13 +70,16 @@ class HardwareRequirementsLabel(Gtk.HBox):
         else:
             label_text = self.LABEL
         short_descr = get_hw_short_description(self.tag)
-        return _(label_text) % {
+        # this needs to be unicode as the translation for zh_CN contains
+        # special chars for the "," (LP: #967036)
+        label_text = unicode(_(label_text), "utf8", "ignore") % {
             "sym": sym,
             # we need unicode() here instead of utf8 or str because
             # the %s in "label_text" will cause str() to be called on the
             # encoded string, but it will not know what encoding to use
             "hardware": unicode(short_descr, "utf8", "ignore")
             }
+        return label_text
 
     def set_hardware_requirement(self, tag, result):
         self.tag = tag

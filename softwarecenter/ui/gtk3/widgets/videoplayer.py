@@ -91,6 +91,9 @@ class VideoPlayer(Gtk.VBox):
         base_uri = "http://www.ubuntu.com"
         self.webkit.load_html_string(html, base_uri)
 
+    def stop(self):
+        self.webkit.load_uri('')
+
 
 # AKA the-segfault-edition-with-no-documentation
 class VideoPlayerGtk3(Gtk.VBox):
