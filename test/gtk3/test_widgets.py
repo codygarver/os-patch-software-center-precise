@@ -10,7 +10,6 @@ from mock import Mock, patch
 from testutils import setup_test_env, do_events
 setup_test_env()
 from softwarecenter.utils import utf8
-from softwarecenter.ui.gtk3.widgets import videoplayer
 from softwarecenter.ui.gtk3.widgets.reviews import get_test_reviews_window
 from softwarecenter.ui.gtk3.widgets.labels import (
     HardwareRequirementsLabel, HardwareRequirementsBox)
@@ -119,12 +118,12 @@ class TestWidgets(unittest.TestCase):
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
 
+
     def test_apptreeview(self):
         from softwarecenter.ui.gtk3.widgets.apptreeview import get_test_window
         win = get_test_window()
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
-
 
 class TestHWRequirements(unittest.TestCase):
 
@@ -178,7 +177,7 @@ class TestHWRequirements(unittest.TestCase):
         # test seting it again
         box.set_hardware_requirements(self.HW_TEST_RESULT)
         self.assertEqual(len(box.get_children()), 2)
-
+        
 
 class TestUIReviewsList(unittest.TestCase):
     def setUp(self):
@@ -242,30 +241,6 @@ class TestUIReviewsList(unittest.TestCase):
             _('Be the first to contribute a review for this application'))
 
 
-class VideoPlayerTestCase(unittest.TestCase):
-
-    def setUp(self):
-        super(VideoPlayerTestCase, self).setUp()
-        self.webkit_uri = None
-        self.vp = videoplayer.VideoPlayer()
-        self.vp.webkit.load_uri = lambda uri: setattr(self, 'webkit_uri', uri)
-        self.vp.webkit.get_uri = lambda: self.webkit_uri
-        self.addCleanup(self.vp.destroy)
-
-    def test_uri(self):
-        self.assertEqual(self.vp.uri, '')
-
-        expected_uri = 'file://test'
-        self.vp.uri = expected_uri
-
-        self.assertEqual(self.vp.uri, expected_uri)
-        self.assertEqual(self.vp.webkit.get_uri(), self.vp.uri)
-
-    def test_stop(self):
-        self.vp.uri = 'http://foo.bar.baz'
-        self.vp.stop()
-
-        self.assertEqual(self.vp.webkit.get_uri(), '')
 
 
 if __name__ == "__main__":

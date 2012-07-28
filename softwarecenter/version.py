@@ -1,5 +1,5 @@
 
-VERSION='5.2.4elementary193~precise1'
-CODENAME='precise'
+VERSION='5.2.3'
+CODENAME='precise-proposed'
 DISTRO='Ubuntu'
 RELEASE='12.04'

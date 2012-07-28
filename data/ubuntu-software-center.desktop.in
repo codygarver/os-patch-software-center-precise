@@ -1,7 +1,7 @@
 [Desktop Entry]
-_Name=Software Center
+_Name=Ubuntu Software Center
 _GenericName=Software Center
-_Comment=Lets you choose from thousands of applications available for elementary OS
+_Comment=Lets you choose from thousands of applications available for Ubuntu
 Exec=/usr/bin/software-center %u
 Icon=softwarecenter
 Terminal=false

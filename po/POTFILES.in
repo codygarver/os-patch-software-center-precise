@@ -23,7 +23,7 @@ softwarecenter/db/pkginfo_impl/packagekit.py
 softwarecenter/distro/Debian.py
 softwarecenter/distro/Fedora.py
 softwarecenter/distro/__init__.py
-softwarecenter/distro/elementary.py
+softwarecenter/distro/Ubuntu.py
 softwarecenter/enums.py
 softwarecenter/hw.py
 softwarecenter/region.py

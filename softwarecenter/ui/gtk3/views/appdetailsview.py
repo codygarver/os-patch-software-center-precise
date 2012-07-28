@@ -1565,7 +1565,6 @@ class AppDetailsView(Viewport):
         self._update_pkg_info_table(app_details)
         self._update_warning_bar(app_details)
 #        self._update_addons_minimal(app_details)
-        self._update_app_video(app_details)
 
         # depending on pkg install state set action labels
         self.pkg_statusbar.configure(app_details, app_details.pkg_state)
@@ -2043,7 +2042,7 @@ class AppDetailsView(Viewport):
         self.section = section
 
 
-def get_test_window_appdetails(pkgname="totem"):
+def get_test_window_appdetails():
 
     from softwarecenter.db.pkginfo import get_pkg_info
     cache = get_pkg_info()
@@ -2068,6 +2067,12 @@ def get_test_window_appdetails(pkgname="totem"):
     win = Gtk.Window()
     scroll = Gtk.ScrolledWindow()
     view = AppDetailsView(db, distro, icons, cache, datadir)
+
+    import sys
+    if len(sys.argv) > 1:
+        pkgname = sys.argv[1]
+    else:
+        pkgname = "totem"
 
     view.show_app(Application("", pkgname))
     #view.show_app(Application("Pay App Example", "pay-app"))
@@ -2100,13 +2105,7 @@ if __name__ == "__main__":
             view.show_app(Application("Movie Player", "totem"))
         return True
 
-    import sys
-    if len(sys.argv) > 1:
-        pkgname = sys.argv[1]
-    else:
-        pkgname = "totem"
-
-    win = get_test_window_appdetails(pkgname=pkgname)
+    win = get_test_window_appdetails()
 
     # keep it spinning to test for re-draw issues and memleaks
     #view = win.get_data("view")

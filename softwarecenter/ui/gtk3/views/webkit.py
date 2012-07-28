@@ -17,32 +17,12 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import os
-
 from gi.repository import WebKit as webkit
 from gi.repository import Gtk
 from gi.repository import Pango
 import urlparse
 
 from softwarecenter.i18n import get_language
-from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
-
-from gi.repository import Soup
-from gi.repository import WebKit
-
-
-def global_webkit_init():
-    session = WebKit.get_default_session()
-    fname = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "cookies.txt")
-    # clear cookies again in a new session, see #1018347 comment #4
-    # there is no "logout" support right now on any of the USC pages
-    try:
-        os.remove(fname)
-    except OSError:
-        pass
-    cookie_jar = Soup.CookieJarText.new(fname, False)
-    session.add_feature(cookie_jar)
-global_webkit_init()
 
 
 class LocaleAwareWebView(webkit.WebView):

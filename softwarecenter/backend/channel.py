@@ -237,8 +237,6 @@ class SoftwareChannel(object):
             channel_display_name = self.distro.get_distro_channel_description()
         elif channel_name == "For Purchase":
             channel_display_name = _("For Purchase")
-        elif channel_name == "Previous Purchases":
-            channel_display_name = _("Previous Purchases")
         elif channel_name == "Application Review Board PPA":
             channel_display_name = _("Independent")
         elif channel_name == "notdownloadable":

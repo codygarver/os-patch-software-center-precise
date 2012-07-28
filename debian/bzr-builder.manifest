@@ -1,3 +1,0 @@
-# bzr-builder format 0.3 deb-version {debversion}elementary193
-lp:ubuntu/precise-updates/software-center revid:package-import@ubuntu.com-20120628103555-grvde8fxjyrasdhj
-merge elementary-patch lp:~elementary-os/elementaryos/os-patch-software-center revid:netherblood@gmail.com-20120623180805-xyc33ryrf2atl67i
