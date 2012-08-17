@@ -258,6 +258,9 @@ APP_INSTALL_PATH_DELIMITER = "__"
 #carousel app limit to override limit in .menu file for category
 TOP_RATED_CAROUSEL_LIMIT = 12
 
+# Transaction ID for the "fake" purchase transaction
+PURCHASE_TRANSACTION_ID = "FakePurchaseTransactionID"
+
 from .version import VERSION, DISTRO, RELEASE, CODENAME
 USER_AGENT = "Software Center/%s (N;) %s/%s (%s)" % (
     VERSION, DISTRO, RELEASE, CODENAME)

@@ -93,6 +93,7 @@ class FeaturedExhibit(object):
             'title': _("Our star apps"),
             'subtitle': _("Come and explore our favourites"),
         }
+        self.click_url = ""
         # we should extract this automatically from the html
         #self.atk_name = _("Default Banner")
         #self.atk_description = _("You see this banner because you have no "
@@ -338,9 +339,8 @@ class ExhibitBanner(Gtk.EventBox):
                         int(event.x), int(event.y)):
             self.pressed = False
             return
-
         exhibit = self.exhibits[self.cursor]
-        if exhibit.package_names and self.pressed:
+        if (exhibit.package_names or exhibit.click_url) and self.pressed:
             self.emit("show-exhibits-clicked", exhibit)
         self.pressed = False
 

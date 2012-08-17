@@ -69,6 +69,8 @@ class AppDetailsDebFile(AppDetails):
             raise DebFileOpenError("AppDetailsDebFile: doc must be None.")
 
         self._error = None
+        self._deb = None
+
         # check errors before creating the DebPackage
         if not os.path.exists(self._app.request):
             self._error = _("Not found")
@@ -88,7 +90,6 @@ class AppDetailsDebFile(AppDetails):
                 # but that is no longer the case with the latest apt
                 self._deb = DebPackage(self._app.request, self._cache._cache)
         except:
-            self._deb = None
             # deb files which are corrupt
             self._error = _("Internal Error")
             self._error_not_found = utf8(_(u"The file \u201c%s\u201d "

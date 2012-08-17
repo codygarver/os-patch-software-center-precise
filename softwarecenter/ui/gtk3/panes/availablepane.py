@@ -37,7 +37,9 @@ from softwarecenter.enums import (ActionButtons,
 from softwarecenter.paths import APP_INSTALL_PATH
 from softwarecenter.utils import (wait_for_apt_cache_ready,
                                   get_exec_line_from_desktop,
-                                  get_file_path_from_iconname)
+                                  is_no_display_desktop_file,
+                                  get_file_path_from_iconname,
+                                  convert_desktop_file_to_installed_location)
 from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.db.database import Application
 
@@ -48,6 +50,7 @@ from softwarecenter.ui.gtk3.views.catview_gtk import (LobbyViewGtk,
 from softwarepane import SoftwarePane
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarecenter.ui.gtk3.session.appmanager import get_appmanager
+from softwarecenter.backend.channel import SoftwareChannel
 from softwarecenter.backend.unitylauncher import (UnityLauncher,
                                                   UnityLauncherInfo,
                                                   TransactionDetails)
@@ -380,13 +383,8 @@ class AvailablePane(SoftwarePane):
 
     def on_transaction_started(self, backend, pkgname, appname, trans_id,
                                trans_type):
-        # we only care about installs for the launcher, queue here for
-        # later, see #972710
-        if trans_type == TransactionTypes.INSTALL:
-            transaction_details = TransactionDetails(
-                    pkgname, appname, trans_id, trans_type)
-            self.unity_launcher_transaction_queue[pkgname] = (
-                    transaction_details)
+        self._register_unity_launcher_transaction_started(pkgname, appname,
+                                                          trans_id, trans_type)
 
     def on_transactions_changed(self, backend, pending_transactions):
         """internal helper that keeps the action bar up-to-date by
@@ -394,61 +392,84 @@ class AvailablePane(SoftwarePane):
         """
         if self._is_custom_list_search(self.state.search_term):
             self._update_action_bar()
-        # add app to unity launcher on the first sign of progress
-        # and remove from the pending queue once that is done
-        for pkgname in pending_transactions:
-            if pkgname in self.unity_launcher_transaction_queue:
-                transaction_details = (
-                    self.unity_launcher_transaction_queue.pop(pkgname))
-                self._add_application_to_unity_launcher(transaction_details)
 
     def on_transaction_complete(self, backend, result):
         if result.pkgname in self.unity_launcher_transaction_queue:
-            self.unity_launcher_transaction_queue.pop(result.pkgname)
+            transaction_details = (
+                self.unity_launcher_transaction_queue.pop(result.pkgname))
+            self._add_application_to_unity_launcher(transaction_details)
+
+    def _register_unity_launcher_transaction_started(self, pkgname, appname,
+                                                     trans_id, trans_type):
+        # at the start of the transaction, we gather details for use later
+        # when it is time to add the installed app to the Unity launcher,
+        # (see #972710). we only care about installs for the launcher
+        # mvo: use softwarecenter.utils explicitly here so that we can monkey
+        #      patch it in the test
+        if (trans_type == TransactionTypes.INSTALL and
+                self.add_to_launcher_enabled and
+                softwarecenter.utils.is_unity_running()):
+            transaction_details = TransactionDetails(
+                    pkgname, appname, trans_id, trans_type)
+            self.unity_launcher_transaction_queue[pkgname] = (
+                    transaction_details)
 
     def _add_application_to_unity_launcher(self, transaction_details):
-        if not self.add_to_launcher_enabled:
-            return
-        # mvo: use use softwarecenter.utils explicitly so that we can monkey
-        #      patch it in the test
-        if not softwarecenter.utils.is_unity_running():
-            return
-
         app = Application(pkgname=transaction_details.pkgname,
                           appname=transaction_details.appname)
         appdetails = app.get_details(self.db)
+        # convert the app-install desktop file location to the actual installed
+        # desktop file location (or in the case of a purchased item from the
+        # agent, generate the correct installed desktop file location)
+        installed_desktop_file_path = (
+            convert_desktop_file_to_installed_location(appdetails.desktop_file,
+                                                       app.pkgname))
         # we only add items to the launcher that have a desktop file
-        if not appdetails.desktop_file:
+        if not installed_desktop_file_path:
             return
         # do not add apps that have no Exec entry in their desktop file
         # (e.g. wine, see LP: #848437 or ubuntu-restricted-extras,
-        # see LP: #913756)
-        if (os.path.exists(appdetails.desktop_file) and
-            not get_exec_line_from_desktop(appdetails.desktop_file)):
+        # see LP: #913756), also, don't add the item if NoDisplay is
+        # specified (see LP: #1006483)
+        if (os.path.exists(installed_desktop_file_path) and
+            (not get_exec_line_from_desktop(installed_desktop_file_path) or
+            is_no_display_desktop_file(installed_desktop_file_path))):
             return
 
         # now gather up the unity launcher info items and send the app to the
         # launcher service
         launcher_info = self._get_unity_launcher_info(app, appdetails,
+                installed_desktop_file_path,
                 transaction_details.trans_id)
         self.unity_launcher.send_application_to_launcher(
                 transaction_details.pkgname,
                 launcher_info)
 
-    def _get_unity_launcher_info(self, app, appdetails, trans_id):
+    def _get_unity_launcher_info(
+            self, app, appdetails, installed_desktop_file_path, trans_id):
         (icon_size, icon_x, icon_y) = (
                 self._get_onscreen_icon_details_for_launcher_service(app))
         icon_path = get_file_path_from_iconname(
                                 self.icons,
-                                iconname=appdetails.icon_file_name)
+                                iconname=appdetails.icon)
+        # Note that the transaction ID is not specified because we are firing
+        # the dbus signal at the very end of the installation now, and the
+        # corresponding fix in Unity is expecting this value to be empty (it
+        # would not be useful to the Unity launcher at this point anyway,
+        # as the corresponding transaction would be complete).
+        # Please see bug LP: #925014 and corresponding Unity branch for
+        # further details.
+        # TODO: If and when we re-implement firing the dbus signal at the
+        # start of the transaction, at that time we will need to replace
+        # the empty string below with the trans_id value.
         launcher_info = UnityLauncherInfo(app.name,
                                           appdetails.icon,
                                           icon_path,
                                           icon_x,
                                           icon_y,
                                           icon_size,
-                                          appdetails.desktop_file,
-                                          trans_id)
+                                          installed_desktop_file_path,
+                                          "")
         return launcher_info
 
     def _get_onscreen_icon_details_for_launcher_service(self, app):
@@ -537,6 +558,7 @@ class AvailablePane(SoftwarePane):
         self.searchentry.clear_with_no_signal()
         self.apps_limit = 0
         self.apps_search_term = ""
+        self.state.search_term = ""
 
     def _is_custom_list_search(self, search_term):
         return (search_term and
@@ -697,15 +719,15 @@ class AvailablePane(SoftwarePane):
 
     def display_previous_purchases(self, page, view_state):
         self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
-        self.app_view.set_header_labels(_("Previous Purchases"), None)
+        header_strings = self._get_header_for_view_state(view_state)
+        self.app_view.set_header_labels(*header_strings)
         self.notebook.set_current_page(AvailablePane.Pages.LIST)
         # clear any search terms
         self._clear_search()
-        # do not emit app-list-changed here, this is done async when
-        # the new model is ready
-        self.refresh_apps(query=self.previous_purchases_query)
+        self.refresh_apps()
         self.action_bar.clear()
         self.cat_view.stop_carousels()
+        return True
 
     def on_subcategory_activated(self, subcat_view, category):
         LOG.debug("on_subcategory_activated: %s %s" % (
@@ -761,7 +783,9 @@ class AvailablePane(SoftwarePane):
         """ called to activate the previous purchases view """
         #print cat_view, name, query
         LOG.debug("on_previous_purchases_activated with query: %s" % query)
-        self.previous_purchases_query = query
+        self.state.channel = SoftwareChannel("Previous Purchases",
+                                             "software-center-agent",
+                                             None, channel_query=query)
         vm = get_viewmanager()
         vm.display_page(self, AvailablePane.Pages.LIST, self.state,
                         self.display_previous_purchases)

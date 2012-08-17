@@ -20,9 +20,10 @@ from softwarecenter.region import REGION_WARNING_STRING
 from test.test_database import make_purchased_app_details
 
 
-
 # window destory timeout
 TIMEOUT=100
+
+
 
 class TestAppdetailsView(unittest.TestCase):
 
@@ -34,6 +35,16 @@ class TestAppdetailsView(unittest.TestCase):
         GObject.timeout_add(TIMEOUT, lambda: self.win.destroy())
         Gtk.main()
 
+    def set_mock_app_and_details(self, app_name="software-center", **kwargs):
+        app = Application("", app_name)
+        mock_app = get_mock_app_from_real_app(app)
+        mock_details = mock_app.get_details(None)
+        for attr, value in kwargs.iteritems():
+            setattr(mock_details, attr, value)
+
+        self.view.app = mock_app
+        self.view.app_details = mock_details
+
     def test_videoplayer(self):
         # show app with no video
         app = Application("", "2vcard")
@@ -42,34 +53,30 @@ class TestAppdetailsView(unittest.TestCase):
         self.assertFalse(self.view.videoplayer.get_property("visible"))
 
         # create app with video and ensure its visible
-        app = Application("", "synaptic")
-        mock = get_mock_app_from_real_app(app)
-        details = mock.get_details(None)
-        # this is a example html - any html5 video will do
-        details.video_url = "http://people.canonical.com/~mvo/totem.html"
-        self.view.show_app(mock)
+        self.set_mock_app_and_details(
+            app_name="synaptic",
+            # this is a example html - any html5 video will do
+            video_url="http://people.canonical.com/~mvo/totem.html")
+        self.view.show_app(self.view.app)
         do_events()
         self.assertTrue(self.view.videoplayer.get_property("visible"))
-    
+
     def test_page_pkgstates(self):
-        # show app 
+        # show app
         app = Application("", "abiword")
         self.view.show_app(app)
         do_events()
-        
+
         # check that the action bar is given initial focus in the view
         self.assertTrue(self.view.pkg_statusbar.button.is_focus())
 
         # create mock app
-        mock_app = get_mock_app_from_real_app(app)
-        self.view.app = mock_app
-        mock_details = mock_app.get_details(None)
-        mock_details.purchase_date = "2011-11-20 17:45:01"
-        mock_details._error_not_found = "error not found"
-        mock_details.price = "1.00"
-        mock_details.pkgname = "abiword"
-        mock_details.error = "error-text"
-        self.view.app_details = mock_details
+        self.set_mock_app_and_details(
+            app_name="abiword", purchase_date="2011-11-20 17:45:01",
+            _error_not_found="error not found", price="1.00",
+            pkgname="abiword", error="error-text")
+        mock_app = self.view.app
+        mock_details = self.view.app_details
 
         # the states and what labels we expect in the pkgstatusbar
         # first string is status text, second is button text
@@ -101,7 +108,7 @@ class TestAppdetailsView(unittest.TestCase):
             if state in pkg_states_to_labels:
                 label, button_label = pkg_states_to_labels[state]
                 self.assertEqual(
-                    self.view.pkg_statusbar.get_label(), 
+                    self.view.pkg_statusbar.get_label(),
                     label.decode("utf-8"))
                 self.assertEqual(
                     self.view.pkg_statusbar.get_button_label().decode("utf-8"),
@@ -122,15 +129,10 @@ class TestAppdetailsView(unittest.TestCase):
 
     def test_app_icon_loading(self):
         # get icon
-        app = Application("", "software-center")
-        mock_app = get_mock_app_from_real_app(app)
-        self.view.app = mock_app
-        mock_details = mock_app.get_details(None)
-        mock_details.cached_icon_file_path = "download-icon-test"
-        mock_details.icon = "favicon.ico"
-        mock_details.icon_url = "http://de.wikipedia.org/favicon.ico"
-        self.view.app_details = mock_details
-        self.view.show_app(mock_app)
+        self.set_mock_app_and_details(
+            cached_icon_file_path="download-icon-test", icon="favicon.ico",
+            icon_url="http://de.wikipedia.org/favicon.ico")
+        self.view.show_app(self.view.app)
         do_events()
         # ensure the icon is there
         # FIXME: ensure that the icon is really downloaded
@@ -250,10 +252,21 @@ class TestAppdetailsView(unittest.TestCase):
         self.view._submit_reviews_done_callback(None, 0)
 
         self.assertTrue(button.is_sensitive())
-        
+
+    def test_show_app_twice_plays_video(self):
+        video_url = "http://people.canonical.com/~mvo/totem.html"
+        self.set_mock_app_and_details(video_url=video_url)
+
+        self.view.show_app(self.view.app)
+        self.assertEqual(self.view.videoplayer.uri, video_url)
+
+        self.view.videoplayer.uri = None
+        self.view.show_app(self.view.app)
+        self.assertEqual(self.view.videoplayer.uri, video_url)
+
 
 class MultipleVersionsTestCase(unittest.TestCase):
-    
+
     @classmethod
     def setUpClass(cls):
         # Set these as class attributes as we don't modify either
@@ -278,7 +291,7 @@ class MultipleVersionsTestCase(unittest.TestCase):
         self.view.show_app(self.app_mock)
         self.assertFalse(self.view.pkg_statusbar.combo_multiple_versions.get_visible())
         # switch to not-automatic app with different description
-        self.app_mock.details.get_not_automatic_archive_versions = lambda: [ 
+        self.app_mock.details.get_not_automatic_archive_versions = lambda: [
             ("5.0", "precise"),
             ("12.0", "precise-backports"),
             ]
@@ -290,7 +303,7 @@ class MultipleVersionsTestCase(unittest.TestCase):
     def test_combo_multiple_versions(self):
         self.app_mock.details.get_not_automatic_archive_versions = lambda: [
             ("5.0",  "precise"),
-            ("12.0", "precise-backports") 
+            ("12.0", "precise-backports")
             ]
         # ensure that the right method is called
         self.app_mock.details.force_not_automatic_archive_suite = Mock()
@@ -305,7 +318,7 @@ class MultipleVersionsTestCase(unittest.TestCase):
     def test_installed_multiple_version_default(self):
         self.app_mock.details.get_not_automatic_archive_versions = lambda: [
             ("5.0",  "precise"),
-            ("12.0", "precise-backports") 
+            ("12.0", "precise-backports")
             ]
         self.app_mock.details.pkg_state = PkgStates.INSTALLED
         self.app_mock.details.version = "12.0"
@@ -332,10 +345,10 @@ class MultipleVersionsTestCase(unittest.TestCase):
         #self.assertEqual(call_args, (("precise",), {}))
         # ensure the button changes
         self.assertEqual(self.view.pkg_statusbar.button.get_label(), "Change")
-        
+
 
 class HardwareRequirementsTestCase(unittest.TestCase):
-    
+
     @classmethod
     def setUpClass(cls):
         # Set these as class attributes as we don't modify either
@@ -356,7 +369,7 @@ class HardwareRequirementsTestCase(unittest.TestCase):
         self.app_mock.details.pkg_state = PkgStates.UNINSTALLED
 
     def test_show_hardware_requirements(self):
-        self.app_mock.details.hardware_requirements = { 
+        self.app_mock.details.hardware_requirements = {
             'hardware::video:opengl' : 'yes',
             'hardware::gps' : 'no',
             }
@@ -378,7 +391,7 @@ class HardwareRequirementsTestCase(unittest.TestCase):
         self.app_mock.details.pkg_state = PkgStates.NEEDS_PURCHASE
         self.view.show_app(self.app_mock)
         self.assertEqual(
-            self.view.pkg_statusbar.button.get_label(), 
+            self.view.pkg_statusbar.button.get_label(),
             _(u"Buy Anyway\u2026").encode("utf-8"))
         # check if the warning bar is displayed
         self.assertTrue(self.view.pkg_warningbar.get_property("visible"))
@@ -401,13 +414,13 @@ class HardwareRequirementsTestCase(unittest.TestCase):
         self.app_mock.details.pkg_state = PkgStates.NEEDS_PURCHASE
         self.view.show_app(self.app_mock)
         self.assertEqual(
-            self.view.pkg_statusbar.button.get_label(), 
+            self.view.pkg_statusbar.button.get_label(),
             _(u'Buy\u2026').encode("utf-8"))
         # check if the warning bar is invisible
         self.assertFalse(self.view.pkg_warningbar.get_property("visible"))
 
 class RegionRequirementsTestCase(unittest.TestCase):
-    
+
     @classmethod
     def setUpClass(cls):
         # Set these as class attributes as we don't modify either
@@ -438,7 +451,7 @@ class RegionRequirementsTestCase(unittest.TestCase):
         self.app_mock.details.pkg_state = PkgStates.NEEDS_PURCHASE
         self.view.show_app(self.app_mock)
         self.assertEqual(
-            self.view.pkg_statusbar.button.get_label(), 
+            self.view.pkg_statusbar.button.get_label(),
             _(u"Buy Anyway\u2026").encode("utf-8"))
         # check if the warning bar is displayed
         self.assertTrue(self.view.pkg_warningbar.get_property("visible"))
@@ -537,9 +550,9 @@ class PurchasedAppDetailsStatusBarTestCase(unittest.TestCase):
             self.assertEqual(
                 [method_name],
                 all_method_calls)
-                
+
 class AppRecommendationsTestCase(unittest.TestCase):
-    
+
     @classmethod
     def setUpClass(cls):
         # Set these as class attributes as we don't modify either
@@ -558,11 +571,11 @@ class AppRecommendationsTestCase(unittest.TestCase):
         app = Application("", "pitivi")
         self.app_mock = get_mock_app_from_real_app(app)
         self.app_mock.details.pkg_state = PkgStates.UNINSTALLED
-        
+
     def on_query_done(self, recagent, data):
         print "query done, data: '%s'" % data
         self.loop.quit()
-        
+
     def on_query_error(self, recagent, error):
         print "query error received: ", error
         self.loop.quit()

@@ -63,7 +63,7 @@ TAG_MISSING_DESCRIPTION = {
                            'are currently set up.'),
     'hardware::scanner': _('This software requires a scanner, but none are '
                             'currently set up.'),
-    'hardware::stoarge:cd': _('This software requires a CD drive, but none '
+    'hardware::storage:cd': _('This software requires a CD drive, but none '
                                'are currently connected.'),
     'hardware::storage:cd-writer': _('This software requires a CD burner, '
                                       'but none are currently connected.'),

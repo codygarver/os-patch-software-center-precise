@@ -33,7 +33,7 @@ class UnityLauncherInfo(object):
                  icon_x,
                  icon_y,
                  icon_size,
-                 app_install_desktop_file_path,
+                 installed_desktop_file_path,
                  trans_id):
         self.name = name
         self.icon_name = icon_name
@@ -41,7 +41,7 @@ class UnityLauncherInfo(object):
         self.icon_x = icon_x
         self.icon_y = icon_y
         self.icon_size = icon_size
-        self.app_install_desktop_file_path = app_install_desktop_file_path
+        self.installed_desktop_file_path = installed_desktop_file_path
         self.trans_id = trans_id
 
 
@@ -73,8 +73,8 @@ class UnityLauncher(object):
                   launcher_info.name)
         LOG.debug("  launcher_info.icon_file_path: ",
                      launcher_info.icon_file_path)
-        LOG.debug("  launcher_info.app_install_desktop_file_path: ",
-                     launcher_info.app_install_desktop_file_path)
+        LOG.debug("  launcher_info.installed_desktop_file_path: ",
+                     launcher_info.installed_desktop_file_path)
         LOG.debug("  launcher_info.trans_id: ", launcher_info.trans_id)
 
         try:
@@ -89,7 +89,7 @@ class UnityLauncher(object):
                     launcher_info.icon_x,
                     launcher_info.icon_y,
                     launcher_info.icon_size,
-                    launcher_info.app_install_desktop_file_path,
+                    launcher_info.installed_desktop_file_path,
                     launcher_info.trans_id)
         except Exception as e:
             LOG.warn("could not send dbus signal to the Unity launcher: (%s)",

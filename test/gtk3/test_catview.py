@@ -326,7 +326,35 @@ class ExhibitsTestCase(unittest.TestCase):
         self.assertEqual(1, len(banner.exhibits))
         self.assertIs(banner.exhibits[0], exhibit)
 
+    def test_exhibit_with_url(self):
+        # available exhibit
+        exhibit = Mock()
+        exhibit.package_names = ''
+        exhibit.click_url = 'http://example.com'
+        exhibit.banner_url = 'banner'
+        exhibit.title_translated = ''
 
+        sca = ObjectWithSignals()
+        sca.query_exhibits = lambda: sca.emit('exhibits', sca,
+                                              [exhibit])
+
+        with patch.object(catview_gtk, 'SoftwareCenterAgent', lambda: sca):
+            # add the banners
+            self.lobby._append_banner_ads()
+            # fake click
+            alloc = self.lobby.exhibit_banner.get_allocation()
+            mock_event = Mock()
+            mock_event.x = alloc.x
+            mock_event.y = alloc.y
+            with patch.object(self.lobby.exhibit_banner, 'emit') as mock_emit:
+                self.lobby.exhibit_banner.on_button_press(None, mock_event)
+                self.lobby.exhibit_banner.on_button_release(None, mock_event)
+                mock_emit.assert_called()
+                signal_name = mock_emit.call_args[0][0]
+                call_exhibit = mock_emit.call_args[0][1]
+                self.assertEqual(signal_name, "show-exhibits-clicked")
+                self.assertEqual(call_exhibit.click_url, "http://example.com")
+        
 if __name__ == "__main__":
     #import logging
     #logging.basicConfig(level=logging.DEBUG)

@@ -29,7 +29,7 @@ from softwarecenter.utils import (sources_filename_from_ppa_entry,
                                   obfuscate_private_ppa_details,
                                   utf8,
                                   )
-from softwarecenter.enums import TransactionTypes
+from softwarecenter.enums import TransactionTypes, PURCHASE_TRANSACTION_ID
 
 from aptdaemon import client
 from aptdaemon import enums
@@ -67,11 +67,13 @@ def get_dbus_bus():
 
 
 class FakePurchaseTransaction(object):
+
     def __init__(self, app, iconname):
         self.pkgname = app.pkgname
         self.appname = app.appname
         self.iconname = iconname
         self.progress = 0
+        self.tid = PURCHASE_TRANSACTION_ID
 
 
 class AptdaemonTransaction(BaseTransaction):
@@ -545,12 +547,10 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         and finally installing the specified application once the
         package list reload has completed.
         """
-        self.emit("transaction-started", app.pkgname, app.appname,
-            "FIXME-NEED-ID-HERE", TransactionTypes.INSTALL)
         self._logger.info("add_repo_add_key_and_install_app() '%s' '%s' '%s'" %
             (re.sub("deb https://.*@", "", deb_line),  # strip out password
             signing_key_id,
-            app))
+            app.pkgname))
 
         if purchase:
             # pre-authenticate
@@ -565,6 +565,8 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                 return
             # done
             fake_trans = FakePurchaseTransaction(app, iconname)
+            self.emit("transaction-started", app.pkgname, app.appname,
+                fake_trans.tid, TransactionTypes.INSTALL)
             self.pending_purchases[app.pkgname] = fake_trans
         else:
             # FIXME: add authenticate_for_added_repo here

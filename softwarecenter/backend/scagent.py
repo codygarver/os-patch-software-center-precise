@@ -129,6 +129,9 @@ class SoftwareCenterAgent(GObject.GObject):
                         exhibit.html)
                 else:
                     exhibit.title_translated = ""
+            # allow having urls to click on in a banner
+            if not hasattr(exhibit, "click_url"):
+                exhibit.click_url = ""
             # ensure to fix #1004417
             if exhibit.package_names:
                 exhibit.package_names = exhibit.package_names.strip()

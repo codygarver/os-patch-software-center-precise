@@ -430,12 +430,18 @@ def convert_desktop_file_to_installed_location(app_install_data_file_path,
         if os.path.exists(installed_desktop_file_path):
             return installed_desktop_file_path
     # lastly, just try checking directly for the desktop file based on the
-    # pkgname itself
+    # pkgname itself for the case of for-purchase items, etc.
     if pkgname:
         installed_desktop_file_path = "/usr/share/applications/%s.desktop" %\
             pkgname
         if os.path.exists(installed_desktop_file_path):
             return installed_desktop_file_path
+        # files in the extras archive have their desktop filenames prepended
+        # by "extras-", so we check for that also (LP: #1012877)
+        extras_desktop_file_path = ("/usr/share/applications/"
+            "extras-%s.desktop" % pkgname)
+        if os.path.exists(extras_desktop_file_path):
+            return extras_desktop_file_path
     LOG.warn("Could not determine the installed desktop file path for "
              "app-install desktop file: '%s'" % app_install_data_file_path)
     return ""

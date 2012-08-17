@@ -84,6 +84,10 @@ GtkTreeView {
     background-color: @super-light-aubergine;
 }
 
+GtkTreeView:selected {
+    background-color: @selected_bg_color;
+}
+
 #toolbar-popup {
     padding: 0;
 }

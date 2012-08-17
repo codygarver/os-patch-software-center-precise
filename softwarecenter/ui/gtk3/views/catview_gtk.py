@@ -22,6 +22,7 @@ import gettext
 from gi.repository import Gtk, GObject
 import logging
 import os
+import webbrowser
 import xapian
 
 from gettext import gettext as _
@@ -328,7 +329,10 @@ class LobbyViewGtk(CategoriesViewGtk):
 
     def _on_show_exhibits(self, exhibit_banner, exhibit):
         pkgs = exhibit.package_names.split(",")
-        if len(pkgs) == 1:
+        url = exhibit.click_url
+        if url:
+            webbrowser.open_new_tab(url)
+        elif len(pkgs) == 1:
             app = Application("", pkgs[0])
             self.emit("application-activated", app)
         else:
@@ -344,10 +348,13 @@ class LobbyViewGtk(CategoriesViewGtk):
         result = []
         # filter out those exhibits that are not available in this run
         for exhibit in exhibit_list:
-            available = all(self.db.is_pkgname_known(p) for p in
-                            exhibit.package_names.split(','))
-            if available:
+            if not exhibit.package_names:
                 result.append(exhibit)
+            else:
+                available = all(self.db.is_pkgname_known(p) for p in
+                                exhibit.package_names.split(','))
+                if available:
+                    result.append(exhibit)
 
         # its ok if result is empty, since set_exhibits() will ignore
         # empty lists

@@ -882,12 +882,14 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
         self.view_manager.set_active_view(ViewPages.AVAILABLE)
         self.view_manager.search_entry.clear_with_no_signal()
-        self.available_pane.show_appview_spinner()
         if self.available_for_me_query:
             # we already have the list of available items, so just show it
+            # (no need for spinner here)
             self.available_pane.on_previous_purchases_activated(
                     self.available_for_me_query)
         else:
+            # show spinner as this may take some time
+            self.available_pane.show_appview_spinner()
             # fetch the list of available items and show it
             self._create_scagent_if_needed()
             self._login_via_dbus_sso()

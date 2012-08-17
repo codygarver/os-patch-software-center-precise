@@ -121,27 +121,33 @@ class AppPropertiesHelper(GObject.GObject):
         else:
             self.icon_cache = {}
 
+    def _on_image_download_complete(
+            self, downloader, image_file_path, pkgname):
+        LOG.debug("download for '%s' complete" % image_file_path)
+        try:
+            pb = GdkPixbuf.Pixbuf.new_from_file_at_size(image_file_path,
+                                                        self.icon_size,
+                                                        self.icon_size)
+        except GObject.GError as e:
+            LOG.warn("Failed to get image file for '%s' (%s)",
+                     image_file_path, e)
+            return
+        # replace the icon in the icon_cache now that we've got the real
+        # one
+        icon_file = split_icon_ext(os.path.basename(image_file_path))
+        self.icon_cache[icon_file] = pb
+        self.emit("needs-refresh", pkgname)
+
     def _download_icon_and_show_when_ready(self, url, pkgname, icon_file_name):
         LOG.debug("did not find the icon locally, must download %s" %
             icon_file_name)
-
-        def on_image_download_complete(downloader, image_file_path, pkgname):
-            LOG.debug("download for '%s' complete" % image_file_path)
-            pb = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_file_path,
-                                                        self.icon_size,
-                                                        self.icon_size)
-            # replace the icon in the icon_cache now that we've got the real
-            # one
-            icon_file = split_icon_ext(os.path.basename(image_file_path))
-            self.icon_cache[icon_file] = pb
-            self.emit("needs-refresh", pkgname)
 
         if url is not None:
             icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
                 icon_file_name)
             image_downloader = SimpleFileDownloader()
             image_downloader.connect('file-download-complete',
-                on_image_download_complete, pkgname)
+                                     self._on_image_download_complete, pkgname)
             image_downloader.download_file(url, icon_file_path)
 
     @property

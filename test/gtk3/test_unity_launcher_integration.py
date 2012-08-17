@@ -5,6 +5,8 @@ import time
 import unittest
 
 from testutils import setup_test_env
+from mock import Mock, patch
+
 setup_test_env()
 
 # overwrite early
@@ -38,45 +40,44 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         while Gtk.events_pending():
             Gtk.main_iteration()
 
+    def _simulate_install_events(self, app):
+        # pretend we started an install
+        available_pane.backend.emit("transaction-started",
+                                    app.pkgname, app.appname,
+                                    "testid101",
+                                    TransactionTypes.INSTALL)
+        self._zzz()
+        # send the signal to complete the install
+        mock_result = Mock()
+        mock_result.pkgname = app.pkgname
+        available_pane.backend.emit("transaction-finished",
+                                    mock_result)
+        self._zzz()
+
     def _install_from_list_view(self, pkgname):
         from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
         available_pane.notebook.set_current_page(AvailablePane.Pages.LIST)
-        
         self._p()
-        available_pane.on_search_terms_changed(None, "ark,artha,software-center")
+        available_pane.on_search_terms_changed(None,
+                                               "ark,artha,software-center")
         self._p()
-        
         # select the first item in the list
         available_pane.app_view.tree_view.set_cursor(Gtk.TreePath(0),
                                                             None, False)
         # ok to just use the test app here                                            
         app = Application("", pkgname)
         self._p()
-        
-        # pretend we started an install
-        available_pane.backend.emit("transaction-started",
-                                    app.pkgname, app.appname,
-                                    "testid101",
-                                    TransactionTypes.INSTALL)
-        # wait a wee bit
-        self._zzz()
+        self._simulate_install_events(app)
 
     def _navigate_to_appdetails_and_install(self, pkgname):
         app = Application("", pkgname)
         available_pane.app_view.emit("application-activated",
                                      app)
         self._p()
-        
-        # pretend we started an install
-        available_pane.backend.emit("transaction-started",
-                                    app.pkgname, app.appname,
-                                    "testid101",
-                                    TransactionTypes.INSTALL)
-        # wait a wee bit
-        self._zzz()
-        
-    def _fake_send_application_to_launcher_and_check(self,
-                                                     pkgname, launcher_info):
+        self._simulate_install_events(app)
+
+    def _check_send_application_to_launcher_args(self,
+                                                 pkgname, launcher_info):
         self.assertEqual(pkgname, self.expected_pkgname)
         self.assertEqual(launcher_info.name, self.expected_launcher_info.name)
         self.assertEqual(launcher_info.icon_name,
@@ -87,71 +88,99 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         # list view case) or 96 pixels (for the details view case)
         self.assertTrue(launcher_info.icon_size == 32 or
                         launcher_info.icon_size == 96)
-        self.assertEqual(launcher_info.app_install_desktop_file_path,
-                self.expected_launcher_info.app_install_desktop_file_path)
+        self.assertEqual(launcher_info.installed_desktop_file_path,
+                self.expected_launcher_info.installed_desktop_file_path)
         self.assertEqual(launcher_info.trans_id,
                 self.expected_launcher_info.trans_id)
-        
-    def test_unity_launcher_integration_list_view(self):
-        # test the automatic add to launcher enabled functionality when
-        # installing an app form the list view
-        available_pane.add_to_launcher_enabled = True
-        test_pkgname = "lincity-ng"
-        # now pretend
-        # for testing, we substitute a fake version of UnityLauncher's
-        # send_application_to_launcher method that lets us check for the
-        # correct values and also avoids firing the actual dbus signal
-        # to the unity launcher service
-        self.expected_pkgname = test_pkgname
-        self.expected_launcher_info = UnityLauncherInfo("lincity-ng",
-                 "lincity-ng",
-                 0, 0, 0, 0, # these values are set in availablepane
-                 "/usr/share/app-install/desktop/lincity-ng:lincity-ng.desktop",
-                 "testid101")
-        available_pane.unity_launcher.send_application_to_launcher = (
-                self._fake_send_application_to_launcher_and_check)
-        self._install_from_list_view(test_pkgname)
 
-    def test_unity_launcher_integration_details_view(self):
+    @patch('softwarecenter.ui.gtk3.panes.availablepane.UnityLauncher'
+           '.send_application_to_launcher')
+    def test_unity_launcher_integration_list_view(self,
+                                         mock_send_application_to_launcher):
+        # test the automatic add to launcher enabled functionality when
+        # installing an app from the list view
+        available_pane.add_to_launcher_enabled = True
+        test_pkgname = "software-center"
+        self.expected_pkgname = test_pkgname
+        self.expected_launcher_info = UnityLauncherInfo("software-center",
+                "softwarecenter",
+                0, 0, 0, 0, # these values are set in availablepane
+                "/usr/share/applications/ubuntu-software-center.desktop",
+                "")
+        self._install_from_list_view(test_pkgname)
+        self.assertTrue(mock_send_application_to_launcher.called)
+        args, kwargs = mock_send_application_to_launcher.call_args
+        self._check_send_application_to_launcher_args(*args, **kwargs)
+
+    @patch('softwarecenter.ui.gtk3.panes.availablepane.UnityLauncher'
+           '.send_application_to_launcher')
+    def test_unity_launcher_integration_details_view(self,
+                                         mock_send_application_to_launcher):
         # test the automatic add to launcher enabled functionality when
         # installing an app from the details view
         available_pane.add_to_launcher_enabled = True
-        test_pkgname = "lincity-ng"
-        # now pretend
-        # for testing, we substitute a fake version of UnityLauncher's
-        # send_application_to_launcher method that lets us check for the
-        # correct values and also avoids firing the actual dbus signal
-        # to the unity launcher service
+        test_pkgname = "software-center"
         self.expected_pkgname = test_pkgname
-        self.expected_launcher_info = UnityLauncherInfo("lincity-ng",
-                 "lincity-ng",
-                 0, 0, 0, 0, # these values are set in availablepane
-                 "/usr/share/app-install/desktop/lincity-ng:lincity-ng.desktop",
-                 "testid101")
-        available_pane.unity_launcher.send_application_to_launcher = (
-                self._fake_send_application_to_launcher_and_check)
+        self.expected_launcher_info = UnityLauncherInfo("software-center",
+                "softwarecenter",
+                0, 0, 0, 0, # these values are set in availablepane
+                "/usr/share/applications/ubuntu-software-center.desktop",
+                "")
         self._navigate_to_appdetails_and_install(test_pkgname)
+        self.assertTrue(mock_send_application_to_launcher.called)
+        args, kwargs = mock_send_application_to_launcher.call_args
+        self._check_send_application_to_launcher_args(*args, **kwargs)
         
-    def test_unity_launcher_integration_disabled(self):
+    @patch('softwarecenter.ui.gtk3.panes.availablepane.UnityLauncher'
+           '.send_application_to_launcher')
+    def test_unity_launcher_integration_disabled(self,
+                                         mock_send_application_to_launcher):
         # test the case where automatic add to launcher is disabled
         available_pane.add_to_launcher_enabled = False
-        test_pkgname = "lincity-ng"
-        # now pretend
-        # for testing, we substitute a fake version of UnityLauncher's
-        # send_application_to_launcher method that lets us check for the
-        # correct values and also avoids firing the actual dbus signal
-        # to the unity launcher service
-        # in the disabled add to launcher case, we just want to insure
-        # that we never call send_application_to_launcher, so we can just
-        # plug in bogus values and we will catch a call if it occurs
-        self.expected_pkgname = ""
-        self.expected_launcher_info = UnityLauncherInfo("", "",
-                 0, 0, 0, 0, "", "")
-        available_pane.unity_launcher.send_application_to_launcher = (
-                self._fake_send_application_to_launcher_and_check)
+        test_pkgname = "software-center"
         self._navigate_to_appdetails_and_install(test_pkgname)
+        self.assertFalse(mock_send_application_to_launcher.called)
+       
+    @patch('softwarecenter.ui.gtk3.panes.availablepane'
+           '.convert_desktop_file_to_installed_location')
+    @patch('softwarecenter.ui.gtk3.panes.availablepane.UnityLauncher'
+           '.send_application_to_launcher')
+    # NOTE: the order of attributes in the method call appears reversed, this
+    # is because the patch decorators above are executed from innermost to
+    # outermost
+    def test_unity_launcher_integration_launcher(self,
+                mock_send_application_to_launcher,
+                mock_convert_desktop_file_to_installed_location):
+        # this is a 3-tuple of (pkgname, desktop-file, expected_result)
+        TEST_CASES = (
+            # normal app
+            ("software-center", "/usr/share/app-install/desktop/"\
+                 "software-center:ubuntu-software-center.desktop", True),
+            # NoDisplay=True line
+            ("wine", "/usr/share/app-install/desktop/"\
+                 "wine1.4:wine.desktop", False),
+            # No Exec= line
+            ("bzr", "/usr/share/app-install/desktop/"\
+                 "bzr.desktop", False)
+            )
+        # run the test over all test-cases
+        available_pane.add_to_launcher_enabled = True
+        for test_pkgname, app_install_desktop_file_path, res in TEST_CASES:
+            # setup the mock
+            mock_convert_desktop_file_to_installed_location.return_value = (
+                app_install_desktop_file_path)
+            # this is the tofu of the test
+            self._navigate_to_appdetails_and_install(test_pkgname)
+            # verify
+            self.assertEqual(mock_send_application_to_launcher.called, res)
+            # and reset again to ensure we don't get the call info from
+            # the previous call(s)
+            mock_send_application_to_launcher.reset_mock()
 
-    def test_desktop_file_path_conversion(self):
+
+class DesktopFilepathConversionTestCase(unittest.TestCase):
+        
+    def test_normal(self):
         # test 'normal' case
         app_install_desktop_path = ("./data/app-install/desktop/" +
                                     "deja-dup:deja-dup.desktop")
@@ -159,6 +188,8 @@ class TestUnityLauncherIntegration(unittest.TestCase):
                 app_install_desktop_path, "deja-dup")
         self.assertEqual(installed_desktop_path,
                          "./data/applications/deja-dup.desktop")
+
+    def test_encoded_subdir(self):
         # test encoded subdirectory case, e.g. e.g. kde4_soundkonverter.desktop
         app_install_desktop_path = ("./data/app-install/desktop/" +
                                     "soundkonverter:" +
@@ -167,6 +198,8 @@ class TestUnityLauncherIntegration(unittest.TestCase):
                 app_install_desktop_path, "soundkonverter")
         self.assertEqual(installed_desktop_path,
                          "./data/applications/kde4/soundkonverter.desktop")
+
+    def test_purchase_via_software_center_agent(self):
         # test the for-purchase case (uses "software-center-agent" as its
         # appdetails.desktop_file value)
         # FIXME: this will only work if update-manager is installed
@@ -175,6 +208,8 @@ class TestUnityLauncherIntegration(unittest.TestCase):
                 app_install_desktop_path, "update-manager")
         self.assertEqual(installed_desktop_path,
                          "/usr/share/applications/update-manager.desktop")
+
+    def test_no_value(self):
         # test case where we don't have a value for app_install_desktop_path
         # (e.g. for a local .deb install, see bug LP: #768158)
         installed_desktop_path = convert_desktop_file_to_installed_location(

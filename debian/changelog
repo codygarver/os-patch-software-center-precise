@@ -1,3 +1,81 @@
+software-center (5.2.5) precise-proposed; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/fix-lp1009039:
+    - fix treeview selection background (LP: #1009039)
+  * lp:~mvo/software-center/fix-lp1011522:
+    - fix bug where clicking on "Reinstall previous purchases" twice
+      shows endless spinner (LP: #1011522)
+  * lp:~mvo/software-center/click_url:
+    - adds support for a "click_url" from the exhibits banner to
+      support banners for things like the humble-bundle where we
+      don't have packages but URLs (LP: #1020205)
+  * lp:~mvo/software-center/hopefully-fix-lp1008229:
+    - fix crash that can happen if there is an error while
+      opening a deb file (LP: #1008229)
+  * lp:~mvo/software-center/lp1026494:
+    - typo fix in the hw description code (LP: #1026494)
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/unity-launcher-integration-fixes:
+    - fix bug where for-purchase items are not being added to the Unity
+      launcher (LP: #925014)
+    - fix bug where the Unity launcher item for an application incorrectly
+      points to its app-install-data desktop file rather than its installed
+      desktop file (LP: #999427)
+    - fix bug where an application's icon remains in the Unity launcher after
+      the corresponding application has been uninstalled (LP: #981488)
+    - fix bug where the Unity launcher fails to auto-hide after installation
+      of a for-purchase item (LP: #1002440)
+    - fix bug where items in the "Independent" section are not being added
+      to the Unity launcher (LP: #1012877)  
+  * lp:~gary-lasker/software-center/tech-items-to-launcher-fix-lp1006483:
+    - don't add an item to the launcher if its desktop file specifies
+      NoDisplay=true (LP: #1006483)
+  * lp:~gary-lasker/software-center/launcher-integration-unit-tests:
+   - additional unit tests to round out the suite for the Unity
+     launcher integration feature 
+  * lp:~gary-lasker/software-center/fix-lp969907-for-5.2:
+    - fix race condition in _app_activated_cb() (LP: #969907)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 23 Jul 2012 16:38:04 +0200
+
+software-center (5.2.4) precise-proposed; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/lp970627:
+    - fix intermittent crash when expunging the cache (LP: #970627)
+  * lp:~mvo/software-center/lp971776:
+    - fix crash when a downloaded image is invalid for whatever
+      reason (network issues, proxy issues, pay-wall in between)
+      (LP: #971776)
+  * lp:~mvo/software-center/lp967036-2:
+    - fix unicode error crash for people running with the
+      LANGUAGE=zh_CN.UTF-8 or zh_TW.UTF-8 (LP: #967036)
+  * lp:~mvo/software-center/cookie-jar:
+    - fix paypal support in the purchases window (LP: #1018347)
+
+  [ Gary Lasker ]
+  * debian/control:
+    - update vcs link to point to the 5.2 branch 
+  * lp:~gary-lasker/software-center/previous-purchase-sorting-lp873104:
+    - return correct results when sorting the list of previous
+      purchases (LP: #873104)
+  * lp:~gary-lasker/software-center/recommendations-string-change-lp986437-for-5.2:
+    - switch to the updated recommendations opt-in string now that the 
+      corresponding language pack updates are released and available
+      (LP: #986437)
+  * lp:~gary-lasker/software-center/fix-lp920741:
+    - fix UnicodeDecodeError when a commercial app's title contains
+      a unicode character (LP: #920741)
+  
+  [ Natalia Bidart ]
+  * lp:~nataliabidart/software-center/cant-stop-the-music:
+    - Stop the video if user navigates away from an app details page
+      (LP: #1003954).
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 28 Jun 2012 10:35:55 +0200
+
 software-center (5.2.3) precise-proposed; urgency=low
 
   [ Robert Roth ]

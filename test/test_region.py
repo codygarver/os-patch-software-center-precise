@@ -28,6 +28,7 @@ class TestRegion(unittest.TestCase):
         self.assertEqual(get_region_name("BO"), "Bolivia")
         self.assertEqual(get_region_name("DE"), "Germany")
 
+    @unittest.skip("real ubuntu-geoip not always reliable")
     def test_get_region_geoclue(self):
         res = self.region._get_region_geoclue()
         self.assertNotEqual(len(res), 0)

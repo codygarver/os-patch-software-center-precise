@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 import os
 import time
@@ -7,6 +8,7 @@ import unittest
 from testutils import setup_test_env
 setup_test_env()
 
+from softwarecenter.db.application import Application
 from softwarecenter.backend.installbackend_impl.aptd import AptdaemonBackend
 from defer import inline_callbacks
 from mock import Mock
@@ -99,6 +101,21 @@ class TestAptdaemon(unittest.TestCase):
         addons_remove = ["gimp-plugin-registry"]
         yield self.aptd.apply_changes(pkgname, appname ,iconname, addons_install, addons_remove)
 
+    @inline_callbacks
+    def _inline_add_repo_call(self):
+        deb_line = "deb https://foo"
+        signing_key_id = u"xxx"
+        app = Application(u"Elementals: The Magic Key™", "pkgname")
+        iconname = "iconname"
+        yield self.aptd.add_repo_add_key_and_install_app(
+            deb_line, signing_key_id, app, iconname, None, None)
+        
+    def test_add_repo_add_key_and_install_app(self):
+        from mock import patch
+        with patch.object(self.aptd._logger, "info") as mock:
+            self._inline_add_repo_call()
+            self.assertTrue(
+                mock.call_args[0][0].startswith("add_repo_add_key"))
 
 if __name__ == "__main__":
     import logging

@@ -14,6 +14,7 @@ from softwarecenter.testutils import (
 from softwarecenter.ui.gtk3.session.appmanager import (
     ApplicationManager, get_appmanager)
 
+
 class TestAppManager(unittest.TestCase):
     """ tests the appmanager  """
 
@@ -38,7 +39,7 @@ class TestAppManager(unittest.TestCase):
         # test creating it twice raises a error
         self.assertRaises(
             ValueError, ApplicationManager, self.db, self.backend, self.icons)
-        
+
     def test_appmanager(self):
         app_manager = get_appmanager()
         self.assertNotEqual(app_manager, None)

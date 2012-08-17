@@ -126,6 +126,9 @@ class AppTreeView(Gtk.TreeView):
     @property
     def appmodel(self):
         model = self.get_model()
+        # FIXME: would be nice if that would be less ugly,
+        # because we use a treefilter we need to get the "real"
+        # model first
         if isinstance(model, Gtk.TreeModelFilter):
             return model.get_model()
         return model
@@ -505,7 +508,7 @@ class AppTreeView(Gtk.TreeView):
                     model, it = sel.get_selected()
                     path = model.get_path(it)
                     if path:
-                        self._init_activated(btn, self.get_model(), path)
+                        self._init_activated(btn, model, path)
                         btn.has_focus = False
                         r = True
                     break
@@ -521,7 +524,6 @@ class AppTreeView(Gtk.TreeView):
                             btn,
                             btn.name,
                             app,
-                            model,
                             path)
 
     def _cell_data_func_cb(self, col, cell, model, it, user_data):
@@ -555,24 +557,22 @@ class AppTreeView(Gtk.TreeView):
             text = ""
         cell.set_property('text', text)
 
-    def _app_activated_cb(self, btn, btn_id, app, store, path):
+    def _app_activated_cb(self, btn, btn_id, app, path):
         if self.rowref_is_category(app):
             return
+        model = self.appmodel
+        # don't continue if we don't have a valid model (LP: #969907)
+        if not model:
+            return
 
-        # FIXME: would be nice if that would be more elegant
-        # because we use a treefilter we need to get the "real"
-        # model first
-        if type(store) is Gtk.TreeModelFilter:
-            store = store.get_model()
-
-        pkgname = self.appmodel.get_pkgname(app)
+        pkgname = model.get_pkgname(app)
 
         if btn_id == CellButtonIDs.INFO:
             self.app_view.emit("application-activated",
-                               self.appmodel.get_application(app))
+                               model.get_application(app))
         elif btn_id == CellButtonIDs.ACTION:
             btn.set_sensitive(False)
-            store.row_changed(path, store.get_iter(path))
+            model.row_changed(path, model.get_iter(path))
             app_manager = get_appmanager()
             # be sure we dont request an action for a pkg with
             # pre-existing actions
@@ -581,19 +581,19 @@ class AppTreeView(Gtk.TreeView):
                               " '%s'" % pkgname)
                 return False
             self._action_block_list.append(pkgname)
-            if self.appmodel.is_installed(app):
+            if model.is_installed(app):
                 action = AppActions.REMOVE
-            elif self.appmodel.is_purchasable(app):
-                app_manager.buy_app(self.appmodel.get_application(app))
-                store.notify_action_request(app, path)
+            elif model.is_purchasable(app):
+                app_manager.buy_app(model.get_application(app))
+                model.notify_action_request(app, path)
                 return
             else:
                 action = AppActions.INSTALL
 
-            store.notify_action_request(app, path)
+            model.notify_action_request(app, path)
 
             app_manager.request_action(
-                self.appmodel.get_application(app), [], [],
+                model.get_application(app), [], [],
                 action)
         return False
 

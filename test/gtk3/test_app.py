@@ -5,17 +5,23 @@ import unittest
 
 from collections import defaultdict
 from functools import partial
+import xapian
 
 from mock import Mock
 
-from testutils import FakedCache, get_mock_options, setup_test_env
+from testutils import (
+    FakedCache,
+    get_mock_options,
+    setup_test_env,
+    do_events_with_sleep,
+    )
 setup_test_env()
 
 import softwarecenter.paths
 from softwarecenter.db import DebFileApplication, DebFileOpenError
 from softwarecenter.enums import PkgStates, SearchSeparators
 from softwarecenter.ui.gtk3 import app
-
+from softwarecenter.ui.gtk3.widgets.spinner import SpinnerNotebook
 
 class ParsePackagesArgsTestCase(unittest.TestCase):
     """Test suite for the parse_packages_args helper."""
@@ -314,6 +320,19 @@ class ShowPackagesInstalledTestCase(ShowPackagesOnePackageTestCase):
     """Test suite for parsing/searching/loading package lists."""
 
     installed = True
+
+class MenuTestCase(AppTestCase):
+    """ Test case for the menus """
+
+    def test_reinstall_previous_purchases_lp1011522(self):
+        # pretend we have the available_for_me data (much quicker
+        # than to do a real s-c-agent query for this)
+        self.app.available_for_me_query = xapian.Query()
+        self.app.on_menuitem_reinstall_purchases_activate(None)
+        do_events_with_sleep()
+        self.assertEqual(
+            self.app.available_pane.spinner_notebook.get_current_page(),
+            SpinnerNotebook.CONTENT_PAGE)
 
 
 if __name__ == "__main__":

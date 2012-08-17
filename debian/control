@@ -14,7 +14,7 @@ Build-Depends: debhelper (>= 7.0.50),
                python-scour
 Standards-Version: 3.8.4
 X-Python-Version: >= 2.7
-Vcs-Bzr: https://code.launchpad.net/~software-store-developers/software-center/trunk
+Vcs-Bzr: https://code.launchpad.net/~software-store-developers/software-center/5.2
 Homepage: https://launchpad.net/software-center
 
 Package: software-center
