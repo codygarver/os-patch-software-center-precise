@@ -115,7 +115,8 @@ class TopAndWhatsNewTestCase(CatViewBaseTestCase):
 class RecommendationsTestCase(CatViewBaseTestCase):
     """The test suite for the recommendations ."""
 
-    @unittest.skip("Disabled because of race condition in test")
+    @unittest.skip("Disabled because 'is_opted_in' is called earlier than "
+                   "the patch is done so it will not work")
     @patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
     def test_recommended_for_you_opt_in_display(
                                         self, mock_get_recommender_opted_in):
@@ -128,7 +129,8 @@ class RecommendationsTestCase(CatViewBaseTestCase):
                          FramedHeaderBox.CONTENT)
         self.assertTrue(self.rec_panel.opt_in_vbox.get_property("visible"))
 
-    @unittest.skip("Disabled because of race condition in test")
+    @unittest.skip("Disabled because 'is_opted_in' is called earlier than "
+                   "the patch is done so it will not work")
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
@@ -147,6 +149,8 @@ class RecommendationsTestCase(CatViewBaseTestCase):
                          SpinnerNotebook.SPINNER_PAGE)
         self.assertTrue(self.rec_panel.opt_in_vbox.get_property("visible"))
 
+    @unittest.skip("Disabled because 'is_opted_in' is called earlier than "
+                   "the patch is done so it will not work")
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
     @patch('softwarecenter.backend.recagent.RecommenderAgent'
@@ -179,6 +183,8 @@ class RecommendationsTestCase(CatViewBaseTestCase):
         self.assertNotEqual(self._cat, None)
         self.assertEqual(self._cat.name, "Recommended For You")
 
+    @unittest.skip("Disabled because 'is_opted_in' is called earlier than "
+                   "the patch is done so it will not work")
     # patch out the agent query method to avoid making the actual server call
     @patch('softwarecenter.backend.recagent.RecommenderAgent.is_opted_in')
     @patch('softwarecenter.backend.recagent.RecommenderAgent'

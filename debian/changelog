@@ -1,3 +1,14 @@
+software-center (5.2.6) precise-proposed; urgency=low
+
+  * lp:~mvo/software-center/fix-lp870847-5.2:
+    - fix incorrect validation pattern in modify_review call, this
+      should fix the ablity of users to modify their reviews
+      (LP: #870847)
+  * test/gtk3/test_catview.py:
+    - skip some automatic tests are depend on host system state
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 27 Aug 2012 12:03:48 +0200
+
 software-center (5.2.5) precise-proposed; urgency=low
 
   [ Michael Vogt ]

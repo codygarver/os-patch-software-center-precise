@@ -180,7 +180,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     @validate('review_id', int)
     @validate('rating', int)
     @validate_pattern('summary', r'[^\n]+')
-    @validate_pattern('review_text', r'[^\n]+')
+    @validate('review_text', str)
     @returns(ReviewDetails)
     def modify_review(self, review_id, rating, summary, review_text):
         """Modify an existing review"""
