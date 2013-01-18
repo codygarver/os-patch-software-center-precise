@@ -67,8 +67,16 @@ import gettext
 
 
 from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.distro import get_current_arch, get_foreign_architectures
-from softwarecenter.region import get_region_cached, REGION_BLACKLIST_TAG
+from softwarecenter.distro import (
+    get_current_arch,
+    get_foreign_architectures,
+    )
+from softwarecenter.region import (
+    get_region_cached,
+    REGION_BLACKLIST_TAG,
+    REGION_WHITELIST_TAG,
+    )
+
 
 # weights for the different fields
 WEIGHT_DESKTOP_NAME = 10
@@ -919,17 +927,27 @@ def make_doc_from_parser(parser, cache):
     # (deb)tags (in addition to the pkgname debtags
     if parser.has_option_desktop("X-AppInstall-Tags"):
         # register tags
-        tags = parser.get_desktop("X-AppInstall-Tags")
-        if tags:
-            for tag in tags.split(","):
-                doc.add_term("XT" + tag.strip())
-        # ENFORCE region blacklist by not registering the app at all
-        region = get_region_cached()
-        if region:
-            countrycode = region["countrycode"].lower()
-            if "%s%s" % (REGION_BLACKLIST_TAG, countrycode) in tags:
-                LOG.info("skipping region restricted app: '%s'" % name)
-                return
+        tags_string = parser.get_desktop("X-AppInstall-Tags")
+        if tags_string:
+            tags = [tag.strip().lower() for tag in tags_string.split(",")]
+            for tag in tags:
+                doc.add_term("XT" + tag)
+            region = get_region_cached()
+            if region:
+                # ENFORCE region blacklist/whitelist by not registering
+                #          the app at all
+                countrycode = region["countrycode"].lower()
+                if "%s%s" % (REGION_BLACKLIST_TAG, countrycode) in tags:
+                    LOG.info("skipping region restricted app: '%s'"
+                             " (blacklisted) " % name)
+                    return
+                # whitelist
+                for tag in tags:
+                    if (tag.startswith(REGION_WHITELIST_TAG) and not
+                        "%s%s" % (REGION_WHITELIST_TAG, countrycode) in tag):
+                        LOG.info("skipping region restricted app: '%s'"
+                                 " (not whitelisted)" % name)
+                        return
 
     # popcon
     # FIXME: popularity not only based on popcon but also

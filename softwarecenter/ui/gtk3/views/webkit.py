@@ -26,6 +26,8 @@ import urlparse
 
 from softwarecenter.i18n import get_language
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
+from softwarecenter.enums import WEBKIT_USER_AGENT_SUFFIX
+from softwarecenter.utils import get_oem_channel_descriptor
 
 from gi.repository import Soup
 from gi.repository import WebKit
@@ -45,13 +47,44 @@ def global_webkit_init():
 global_webkit_init()
 
 
-class LocaleAwareWebView(webkit.WebView):
+class SoftwareCenterWebView(webkit.WebView):
+    """ A customized version of the regular webview
+
+    It will:
+    - send Accept-Language headers from the users language
+    - disable plugings
+    - send a custom user-agent string
+    - auto-fill in id_email in login.ubuntu.com
+    """
+
+    # javascript to auto fill email login on login.ubuntu.com
+    AUTO_FILL_SERVER = "https://login.ubuntu.com"
+    AUTO_FILL_EMAIL_JS = """
+document.getElementById("id_email").value="%s";
+document.getElementById("id_password").focus();
+"""
 
     def __init__(self):
         # actual webkit init
         webkit.WebView.__init__(self)
         self.connect("resource-request-starting",
                      self._on_resource_request_starting)
+        self.connect("notify::load-status",
+            self._on_load_status_changed)
+        settings = self.get_settings()
+        settings.set_property("enable-plugins", False)
+        settings.set_property("user-agent", self._get_user_agent_string())
+        self._auto_fill_email = ""
+
+    def set_auto_insert_email(self, email):
+        self._auto_fill_email = email
+
+    def _get_user_agent_string(self):
+        settings = self.get_settings()
+        user_agent_string = settings.get_property("user-agent")
+        user_agent_string += " %s " % WEBKIT_USER_AGENT_SUFFIX
+        user_agent_string += get_oem_channel_descriptor()
+        return user_agent_string
 
     def _on_resource_request_starting(self, view, frame, res, req, resp):
         lang = get_language()
@@ -64,15 +97,27 @@ class LocaleAwareWebView(webkit.WebView):
         #    print name, value
         #headers.foreach(_show_header, None)
 
+    def _maybe_auto_fill_in_username(self):
+        uri = self.get_uri()
+        if self._auto_fill_email and uri.startswith(self.AUTO_FILL_SERVER):
+            self.execute_script(
+                self.AUTO_FILL_EMAIL_JS % self._auto_fill_email)
+            # ensure that we have the keyboard focus
+            self.grab_focus()
+
+    def _on_load_status_changed(self, view, pspec):
+        prop = pspec.name
+        status = view.get_property(prop)
+        if status == webkit.LoadStatus.FINISHED:
+            self._maybe_auto_fill_in_username()
+
 
 class ScrolledWebkitWindow(Gtk.VBox):
 
     def __init__(self, include_progress_ui=False):
         super(ScrolledWebkitWindow, self).__init__()
         # get webkit
-        self.webkit = LocaleAwareWebView()
-        settings = self.webkit.get_settings()
-        settings.set_property("enable-plugins", False)
+        self.webkit = SoftwareCenterWebView()
         # add progress UI if needed
         if include_progress_ui:
             self._add_progress_ui()

@@ -15,10 +15,12 @@ from mock import patch
 
 from testutils import setup_test_env
 setup_test_env()
+
 from softwarecenter.utils import (decode_xml_char_reference,
                                   release_filename_in_lists_from_deb_line,
                                   get_http_proxy_string_from_libproxy,
                                   get_file_path_from_iconname,
+                                  get_oem_channel_descriptor,
                                   )
 from softwarecenter.testutils import (do_events,
                                       get_test_gtk3_icon_cache,
@@ -283,6 +285,10 @@ class TestExpungeCache(unittest.TestCase):
         t2.join()
         # ensure that the second one was not called
         self.assertEqual(len(glob.glob(os.path.join(tmpdir, "marker.*"))), 1)
+
+    def test_oem_channel_extractor(self):
+        s = get_oem_channel_descriptor("./data/ubuntu_dist_channel")
+        self.assertEqual(s, "canonical-oem-watauga-precise-amd64-20120517-2")
 
 
 

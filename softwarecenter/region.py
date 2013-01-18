@@ -38,6 +38,8 @@ REGIONTAG = "iso3166::"
 
 # blacklist this region
 REGION_BLACKLIST_TAG = "blacklist-iso3166::"
+# or whitelist it
+REGION_WHITELIST_TAG = "whitelist-iso3166::"
 
 
 def get_region_name(countrycode):

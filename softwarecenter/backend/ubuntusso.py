@@ -30,6 +30,7 @@ import softwarecenter.paths
 # mostly for testing
 from fake_review_settings import FakeReviewSettings, network_delay
 from spawn_helper import SpawnHelper
+from softwarecenter.config import get_config
 
 LOG = logging.getLogger(__name__)
 
@@ -52,6 +53,10 @@ class UbuntuSSOAPI(GObject.GObject):
         GObject.GObject.__init__(self)
 
     def _on_whoami_data(self, spawner, piston_whoami):
+        # once we have data, make sure to save it
+        config = get_config()
+        config.set("general", "email", piston_whoami["preferred_email"])
+        # emit
         self.emit("whoami", piston_whoami)
 
     def whoami(self):

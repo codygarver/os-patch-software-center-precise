@@ -38,7 +38,10 @@ except ImportError:
     from urlparse import urlsplit
 
 from enums import Icons, APP_INSTALL_PATH_DELIMITER
-from paths import SOFTWARE_CENTER_CACHE_DIR
+from paths import (
+    SOFTWARE_CENTER_CACHE_DIR,
+    OEM_CHANNEL_DESCRIPTOR,
+    )
 
 from config import get_config
 
@@ -741,6 +744,15 @@ def safe_makedirs(dir_path):
                 raise
 
 
+def get_oem_channel_descriptor(path=OEM_CHANNEL_DESCRIPTOR):
+    """Return the ubuntu  distribution channel descriptor or a empty string """
+    if not os.path.exists(path):
+        return ""
+    with open(path) as f:
+        for line in filter(lambda l: not l.startswith("#"), f):
+            return line.strip()
+
+
 class SimpleFileDownloader(GObject.GObject):
 
     LOG = logging.getLogger("softwarecenter.simplefiledownloader")
@@ -825,11 +837,28 @@ class SimpleFileDownloader(GObject.GObject):
         f.query_info_async(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, 0, 0,
                            self._cancellable,
                            self._check_url_reachable_and_then_download_cb,
-                           None)
+                           url)
 
-    def _check_url_reachable_and_then_download_cb(self, f, result,
-                                                  user_data=None):
+    def _ensure_correct_url(self, want_url):
+        """This function will ensure that the url we requested to download
+           earlier matches that is now downloaded.
+        """
+        # this function is needed as there is a rance condition when the
+        # operation is finished but the signal is not delivered yet (its
+        # still in the gtk event loop). in this case there is nothing to
+        # self._cancel but self.url/self.dest_file_path will still point to
+        # the wrong file
+        if self.url != want_url:
+            self.LOG.warn("url changed from '%s' to '%s'" % (
+                    want_url, self.url))
+            return False
+        return True
+
+    def _check_url_reachable_and_then_download_cb(self, f, result, want_url):
         self.LOG.debug("_check_url_reachable_and_then_download_cb: %s" % f)
+        if not self._ensure_correct_url(want_url):
+            return
+        # normal operation
         try:
             info = f.query_info_finish(result)
             etag = info.get_etag()
@@ -839,15 +868,17 @@ class SimpleFileDownloader(GObject.GObject):
                                                         etag))
             # url is reachable, now download the file
             f.load_contents_async(
-                self._cancellable, self._file_download_complete_cb, None)
+                self._cancellable, self._file_download_complete_cb, want_url)
         except GObject.GError as e:
             self.LOG.debug("file *not* reachable %s" % self.url)
             self.emit('file-url-reachable', False)
             self.emit('error', GObject.GError, e)
         del f
 
-    def _file_download_complete_cb(self, f, result, path=None):
+    def _file_download_complete_cb(self, f, result, want_url):
         self.LOG.debug("file download completed %s" % self.dest_file_path)
+        if not self._ensure_correct_url(want_url):
+            return
         # The result from the download is actually a tuple with three
         # elements (content, size, etag?)
         # The first element is the actual content so let's grab that

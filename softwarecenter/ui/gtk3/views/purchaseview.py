@@ -112,6 +112,11 @@ center no-repeat;
     def init_view(self):
         if self.wk is None:
             self.wk = ScrolledWebkitWindow()
+            # automatically fill in the email in the login page
+            email = ""
+            if self.config.has_option("general", "email"):
+                email = self.config.get("general", "email")
+            self.wk.webkit.set_auto_insert_email(email)
             #self.wk.webkit.connect("new-window-policy-decision-requested",
             #    self._on_new_window)
             self.wk.webkit.connect("create-web-view", self._on_create_web_view)

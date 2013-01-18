@@ -67,7 +67,6 @@ class SoftwareCenterConfig(SafeConfigParser):
                      self.configfile, e)
             pass
 
-
 _software_center_config = None
 
 

@@ -540,11 +540,57 @@ class AppDetailsSCAApplicationParser(unittest.TestCase):
 
     @patch("softwarecenter.db.update.get_region_cached")
     def test_region_blacklist(self, get_region_cached_mock):
+        """Test that the region blacklist ignores blacklisted locations"""
         from softwarecenter.region import REGION_BLACKLIST_TAG
         get_region_cached_mock.return_value = { "countrycode" : "es",
                                               }
         app_dict = make_software_center_agent_app_dict()
         app_dict["debtags"] = ["%s%s" % (REGION_BLACKLIST_TAG, "es"),
+                              ]
+        # see _get_app_details_from_app_dict
+        item = PistonResponseObject.from_dict(app_dict)
+        parser = SCAApplicationParser(item)
+        doc = make_doc_from_parser(parser, self.db._aptcache)
+        self.assertEqual(doc, None)
+
+    @patch("softwarecenter.db.update.get_region_cached")
+    def test_region_blacklist_blacklists(self, get_region_cached_mock):
+        """Test that the region blacklist adds non-blacklisted locations"""
+        from softwarecenter.region import REGION_BLACKLIST_TAG
+        get_region_cached_mock.return_value = { "countrycode" : "de",
+                                              }
+        app_dict = make_software_center_agent_app_dict()
+        app_dict["debtags"] = ["%s%s" % (REGION_BLACKLIST_TAG, "ES"),
+                              ]
+        # see _get_app_details_from_app_dict
+        item = PistonResponseObject.from_dict(app_dict)
+        parser = SCAApplicationParser(item)
+        doc = make_doc_from_parser(parser, self.db._aptcache)
+        self.assertNotEqual(doc, None)
+
+    @patch("softwarecenter.db.update.get_region_cached")
+    def test_region_whitelist_whitelists(self, get_region_cached_mock):
+        """Test that the whitelist adds whitelisted locations"""
+        from softwarecenter.region import REGION_WHITELIST_TAG
+        get_region_cached_mock.return_value = { "countrycode" : "es",
+                                              }
+        app_dict = make_software_center_agent_app_dict()
+        app_dict["debtags"] = ["%s%s" % (REGION_WHITELIST_TAG, "ES"),
+                              ]
+        # see _get_app_details_from_app_dict
+        item = PistonResponseObject.from_dict(app_dict)
+        parser = SCAApplicationParser(item)
+        doc = make_doc_from_parser(parser, self.db._aptcache)
+        self.assertNotEqual(doc, None)
+
+    @patch("softwarecenter.db.update.get_region_cached")
+    def test_region_whitelist_blacklists(self, get_region_cached_mock):
+        """Test that the whitelist ignores non-whitelist locations"""
+        from softwarecenter.region import REGION_WHITELIST_TAG
+        get_region_cached_mock.return_value = { "countrycode" : "de",
+                                              }
+        app_dict = make_software_center_agent_app_dict()
+        app_dict["debtags"] = ["%s%s" % (REGION_WHITELIST_TAG, "ES"),
                               ]
         # see _get_app_details_from_app_dict
         item = PistonResponseObject.from_dict(app_dict)

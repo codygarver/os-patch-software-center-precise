@@ -262,7 +262,7 @@ TOP_RATED_CAROUSEL_LIMIT = 12
 PURCHASE_TRANSACTION_ID = "FakePurchaseTransactionID"
 
 from .version import VERSION, DISTRO, RELEASE, CODENAME
-USER_AGENT = "Software Center/%s (N;) %s/%s (%s)" % (
+WEBKIT_USER_AGENT_SUFFIX = "SoftwareCenter/%s %s/%s (%s)" % (
     VERSION, DISTRO, RELEASE, CODENAME)
 
 # global backend switch, prefer aptdaemon, if that can not be found, use PK

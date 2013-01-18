@@ -168,7 +168,8 @@ class AppPropertiesHelper(GObject.GObject):
         if doc.available is None:
             pkgname = self.get_pkgname(doc)
             doc.available = (
-                (pkgname in self.cache and self.cache[pkgname].candidate)
+                (pkgname in self.cache and
+                 self.cache[pkgname].candidate is not None)
                 or self.is_purchasable(doc))
         return doc.available
 

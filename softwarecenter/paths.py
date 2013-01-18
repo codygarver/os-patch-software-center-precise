@@ -70,6 +70,9 @@ APT_XAPIAN_INDEX_DB_PATH = APT_XAPIAN_INDEX_BASE_PATH + "/index"
 APT_XAPIAN_INDEX_UPDATE_STAMP_PATH = (APT_XAPIAN_INDEX_BASE_PATH +
                                       "/update-timestamp")
 
+# OEM
+OEM_CHANNEL_DESCRIPTOR = "/var/lib/ubuntu-dist-channel"
+
 
 # ratings&review
 # relative to datadir

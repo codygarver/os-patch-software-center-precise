@@ -1,3 +1,24 @@
+software-center (5.2.7) precise-proposed; urgency=low
+
+  * lp:~mvo/software-center/oem-descriptor-in-user-agent-5.2:
+    - include the oem-channel descriptor in the custom user agent
+      string (LP: #1042749)
+  * lp:~mvo/software-center/auto-fill-email-for-login:
+    - allow auto-fill of the email in login.ubuntu.com if
+      we have it (LP: #1042279)
+  * lp:~mvo/software-center/fix-memleak-5.2:
+    - fix two memory leaks when the cache is re-opened after
+      a package has been installed/removed (LP: #1003466)
+  * lp:~mvo/software-center/region-whitelist-5.2:
+    - fix missing region whitelist support that is used by
+      the software-center-agent (LP: #1006570)
+  * lp:~mvo/software-center/downloader-fix-race839462-again-5.2:
+    - fix a race condition in the SimpleFileDownloader when the file
+      is downloaded but the signal did not get delivered yet by the
+      gtk event loop (LP: #1055441)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 26 Sep 2012 09:39:43 +0200
+
 software-center (5.2.6) precise-proposed; urgency=low
 
   * lp:~mvo/software-center/fix-lp870847-5.2:

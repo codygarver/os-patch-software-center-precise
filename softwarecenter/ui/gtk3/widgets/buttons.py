@@ -178,6 +178,7 @@ class FeaturedTile(TileButton):
         label = helper.get_appname(doc)
         icon = helper.get_icon_at_size(doc, icon_size, icon_size)
         stats = helper.get_review_stats(doc)
+        self.helper = helper
         helper.update_availability(doc)
         helper.connect("needs-refresh", self._on_needs_refresh, doc, icon_size)
         self.is_installed = helper.is_installed(doc)
@@ -268,15 +269,22 @@ class FeaturedTile(TileButton):
             for t in [label, categories, stats_a11y, price] if t])
         self.get_accessible().set_name(a11y_name)
 
-        backend = get_install_backend()
-        backend.connect("transaction-finished",
-                        self.on_transaction_finished,
-                        helper, doc)
+        self.backend = get_install_backend()
+        self.backend.connect("transaction-finished",
+                             self.on_transaction_finished,
+                             helper, doc)
 
         self.connect("enter-notify-event", self.on_enter)
         self.connect("leave-notify-event", self.on_leave)
         self.connect("button-press-event", self.on_press)
         self.connect("button-release-event", self.on_release)
+
+    def destroy(self):
+        # the disconnect the suff connected to "self" is taken care
+        # of by this super()
+        super(FeaturedTile, self).destroy()
+        self.backend.disconnect_by_func(self.on_transaction_finished)
+        self.helper.disconnect_by_func(self._on_needs_refresh)
 
     def _on_needs_refresh(self, helper, pkgname, doc, icon_size):
         icon = helper.get_icon_at_size(doc, icon_size, icon_size)

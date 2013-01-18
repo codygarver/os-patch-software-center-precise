@@ -175,10 +175,16 @@ class FlowableGrid(Gtk.Fixed):
         self.column_spacing = value
         self._layout_children(self.get_allocation())
 
-    def remove_all(self):
+    def remove_all(self, destroy=True):
         self._cell_size = None
         for child in self:
             self.remove(child)
+            # meh, this should not really be necessary, but e.g. the
+            # TileButtons have pretty high refcounts even after remove (~10)
+            if destroy:
+                #print child.__grefcount__
+                child.destroy()
+                del child
 
 
 # first tier of caching, cache component assets from which frames are
