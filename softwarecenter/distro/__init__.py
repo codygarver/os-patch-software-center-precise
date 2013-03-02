@@ -25,6 +25,8 @@ import platform
 
 from softwarecenter.utils import UnimplementedError, utf8
 
+import lsb_release
+
 LOG = logging.getLogger(__name__)
 
 
@@ -162,8 +164,11 @@ class Distro(object):
 
 
 def _get_distro():
-    distro_info = platform.linux_distribution()
-    distro_id = distro_info[0]
+    try:
+        distro_info = lsb_release.get_distro_information(True)
+    except:
+        distro_info = lsb_release.get_distro_information()
+    distro_id = distro_info['ID']
     LOG.debug("get_distro: '%s'", distro_id)
     # start with a import, this gives us only a softwarecenter module
     module = __import__(distro_id, globals(), locals(), [], -1)
