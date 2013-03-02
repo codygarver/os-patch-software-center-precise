@@ -1,5 +1,5 @@
 
-VERSION='5.2.7'
+VERSION='5.2.9'
 CODENAME='precise-proposed'
 DISTRO='Ubuntu'
 RELEASE='12.04'

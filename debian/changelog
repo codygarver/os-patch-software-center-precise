@@ -1,3 +1,23 @@
+software-center (5.2.9) precise-proposed; urgency=low
+
+  [ Brian Murray ]
+  * software-center/paths.py:
+    - modify the OEM_CHANNEL_DESCRIPTOR path (LP: #1095823)
+
+ -- Brian Murray <brian@ubuntu.com>  Mon, 28 Jan 2013 09:14:24 -0800
+
+software-center (5.2.8) precise-proposed; urgency=low
+
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/handle-trans-cancel-lp1027209-for-5.2:
+    - backport of the transaction cancellation fix for bug LP: #1027209.
+  
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/robustness-lp1054070
+    - cherry pick fix for corruption fix LP: #1054070
+
+ -- Iain Lane <iain.lane@canonical.com>  Wed, 16 Jan 2013 18:25:47 +0000
+
 software-center (5.2.7) precise-proposed; urgency=low
 
   * lp:~mvo/software-center/oem-descriptor-in-user-agent-5.2:

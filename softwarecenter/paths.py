@@ -71,7 +71,7 @@ APT_XAPIAN_INDEX_UPDATE_STAMP_PATH = (APT_XAPIAN_INDEX_BASE_PATH +
                                       "/update-timestamp")
 
 # OEM
-OEM_CHANNEL_DESCRIPTOR = "/var/lib/ubuntu-dist-channel"
+OEM_CHANNEL_DESCRIPTOR = "/var/lib/ubuntu_dist_channel"
 
 
 # ratings&review

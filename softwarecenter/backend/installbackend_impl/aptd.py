@@ -182,6 +182,10 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                     'transaction-stopped': (GObject.SIGNAL_RUN_FIRST,
                                             GObject.TYPE_NONE,
                                             (GObject.TYPE_PYOBJECT,)),
+                    # emits a TransactionFinished object
+                    'transaction-cancelled': (GObject.SIGNAL_RUN_FIRST,
+                                              GObject.TYPE_NONE,
+                                              (GObject.TYPE_PYOBJECT,)),
                     # emits with a pending_transactions list object
                     'transactions-changed': (GObject.SIGNAL_RUN_FIRST,
                                              GObject.TYPE_NONE,
@@ -833,6 +837,14 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         """callback when a aptdaemon transaction finished"""
         self._logger.debug("_on_transaction_finished: %s %s %s" % (
                 trans, enum, trans.meta_data))
+
+        # first check if there has been a cancellation of
+        # the install and fire a transaction-cancelled signal
+        # (see LP: #1027209)
+        if enum == enums.EXIT_CANCELLED:
+            result = TransactionFinishedResult(trans, False)
+            self.emit("transaction-cancelled", result)
+            return
 
         # show error
         if enum == enums.EXIT_FAILED:
