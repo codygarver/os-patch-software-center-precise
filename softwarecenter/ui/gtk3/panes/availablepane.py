@@ -225,8 +225,11 @@ class AvailablePane(SoftwarePane):
             self.on_transactions_changed)
         self.backend.connect("transaction-finished",
             self.on_transaction_complete)
+        self.backend.connect("transaction-cancelled",
+            self.on_transaction_cancelled)
+        # a transaction error is treated the same as a cancellation
         self.backend.connect("transaction-stopped",
-            self.on_transaction_complete)
+            self.on_transaction_cancelled)
 
         # now we are initialized
         self.searchentry.set_sensitive(True)
@@ -394,10 +397,18 @@ class AvailablePane(SoftwarePane):
             self._update_action_bar()
 
     def on_transaction_complete(self, backend, result):
+        """ handle a transaction that has completed successfully
+        """
         if result.pkgname in self.unity_launcher_transaction_queue:
             transaction_details = (
                 self.unity_launcher_transaction_queue.pop(result.pkgname))
             self._add_application_to_unity_launcher(transaction_details)
+
+    def on_transaction_cancelled(self, backend, result):
+        """ handle a transaction that has been cancelled
+        """
+        if result.pkgname in self.unity_launcher_transaction_queue:
+            self.unity_launcher_transaction_queue.pop(result.pkgname)
 
     def _register_unity_launcher_transaction_started(self, pkgname, appname,
                                                      trans_id, trans_type):

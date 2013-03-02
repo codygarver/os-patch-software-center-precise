@@ -324,9 +324,10 @@ class ReviewLoader(GObject.GObject):
             outfile = self.REVIEW_STATS_BSDDB_FILE
             outdir = self.REVIEW_STATS_BSDDB_FILE + ".dbenv/"
             self._dump_bsddbm_for_unity(outfile, outdir)
-        except bdb.DBError as e:
+        except (bdb.DBError, MemoryError) as e:
             # see bug #858437, db corruption seems to be rather common
             # on ecryptfs
+            # see also bug #1054070 for the MemoryError
             LOG.warn("error creating bsddb: '%s' (corrupted?)" % e)
             try:
                 shutil.rmtree(outdir)
