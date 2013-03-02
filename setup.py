@@ -62,18 +62,19 @@ def merge_extras_ubuntu_com_channel_file():
 
 
 # update version.py
-#line = open("debian/changelog").readline()
-#m = re.match("^[\w-]+ \(([\w\.~]+)\) ([\w-]+);", line)
-#VERSION = m.group(1)
-#CODENAME = m.group(2)
-#DISTRO = platform.dist()[0]
-#RELEASE = platform.dist()[1]
-#open("softwarecenter/version.py", "w").write("""
-#VERSION='%s'
-#CODENAME='%s'
-#DISTRO='%s'
-#RELEASE='%s'
-#""" % (VERSION, CODENAME, DISTRO, RELEASE))
+line = open("debian/changelog").readline()
+VERSION = line.split("(")[1]
+VERSION = VERSION.split(")")[0]
+CODENAME = line.split(") ")[1]
+CODENAME = CODENAME.split(";")[0]
+DISTRO = platform.dist()[0]
+RELEASE = platform.dist()[1]
+open("softwarecenter/version.py", "w").write("""
+VERSION='%s'
+CODENAME='%s'
+DISTRO='%s'
+RELEASE='%s'
+""" % (VERSION, CODENAME, DISTRO, RELEASE))
 
 # update po4a
 if sys.argv[1] == "build":
