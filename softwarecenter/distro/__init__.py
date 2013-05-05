@@ -85,7 +85,11 @@ class Distro(object):
             return distrocode
         # normal behavior
         if not hasattr(self, "_distro_code_name"):
-            self._distro_code_name = platform.dist()[2]
+            try:
+                distro_info = lsb_release.get_distro_information(True)
+            except:
+                distro_info = lsb_release.get_distro_information()
+            self._distro_code_name = distro_info['CODENAME']
         return self._distro_code_name
 
     def get_maintenance_status(self, cache, appname, pkgname, component,
